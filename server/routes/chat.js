@@ -1,6 +1,8 @@
+
 const express = require('express');
+const { auth } = require('../middleware/auth');
 const Chat = require('../models/Chat');
-const auth = require('../middleware/auth');
+
 const router = express.Router();
 
 // Lấy danh sách cuộc trò chuyện
