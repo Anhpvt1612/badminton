@@ -1,12 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Button, Form, InputGroup } from 'react-bootstrap';
-import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import CourtCard from '../components/CourtCard';
+import React, { useState, useEffect } from "react";
+import {
+  Container,
+  Row,
+  Col,
+  Card,
+  Button,
+  Form,
+  InputGroup,
+} from "react-bootstrap";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import CourtCard from "../components/CourtCard";
 
 const Home = () => {
   const [featuredCourts, setFeaturedCourts] = useState([]);
-  const [searchLocation, setSearchLocation] = useState('');
+  const [searchLocation, setSearchLocation] = useState("");
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -16,10 +24,10 @@ const Home = () => {
 
   const fetchFeaturedCourts = async () => {
     try {
-      const response = await axios.get('/api/courts?limit=6');
+      const response = await axios.get("/api/courts?limit=6");
       setFeaturedCourts(response.data.courts || []);
     } catch (error) {
-      console.error('Error fetching featured courts:', error);
+      console.error("Error fetching featured courts:", error);
     } finally {
       setLoading(false);
     }
@@ -41,8 +49,8 @@ const Home = () => {
                 Đặt sân cầu lông dễ dàng
               </h1>
               <p className="lead mb-4">
-                Tìm và đặt sân cầu lông chất lượng cao gần bạn. 
-                Kết nối với cộng đồng người chơi cầu lông.
+                Tìm và đặt sân cầu lông chất lượng cao gần bạn. Kết nối với cộng
+                đồng người chơi cầu lông.
               </p>
               <Form onSubmit={handleSearch}>
                 <InputGroup size="lg">
@@ -60,11 +68,11 @@ const Home = () => {
               </Form>
             </Col>
             <Col lg={6} className="text-center">
-              <img 
-                src="/hero-badminton.jpg" 
-                alt="Badminton" 
+              <img
+                src="https://cdn.rri.co.id/berita/Fak_Fak/o/1743355350743-badminton-shuttlecocks-racket/dr53irkv3f046vj.jpeg"
+                alt="Badminton"
                 className="img-fluid rounded"
-                style={{ maxHeight: '400px' }}
+                style={{ maxHeight: "400px" }}
               />
             </Col>
           </Row>
@@ -88,7 +96,8 @@ const Home = () => {
                   </div>
                   <Card.Title>Đặt sân 24/7</Card.Title>
                   <Card.Text>
-                    Đặt sân bất cứ lúc nào, bất cứ đâu với hệ thống đặt sân trực tuyến tiện lợi.
+                    Đặt sân bất cứ lúc nào, bất cứ đâu với hệ thống đặt sân trực
+                    tuyến tiện lợi.
                   </Card.Text>
                 </Card.Body>
               </Card>
@@ -101,7 +110,8 @@ const Home = () => {
                   </div>
                   <Card.Title>Tìm đối thủ</Card.Title>
                   <Card.Text>
-                    Kết nối với cộng đồng người chơi cầu lông, tìm đối thủ phù hợp với trình độ.
+                    Kết nối với cộng đồng người chơi cầu lông, tìm đối thủ phù
+                    hợp với trình độ.
                   </Card.Text>
                 </Card.Body>
               </Card>
@@ -114,7 +124,8 @@ const Home = () => {
                   </div>
                   <Card.Title>Đảm bảo chất lượng</Card.Title>
                   <Card.Text>
-                    Tất cả sân đều được kiểm duyệt kỹ lưỡng để đảm bảo chất lượng tốt nhất.
+                    Tất cả sân đều được kiểm duyệt kỹ lưỡng để đảm bảo chất
+                    lượng tốt nhất.
                   </Card.Text>
                 </Card.Body>
               </Card>
@@ -150,10 +161,10 @@ const Home = () => {
           )}
           <Row>
             <Col className="text-center">
-              <Button 
-                variant="primary" 
+              <Button
+                variant="primary"
                 size="lg"
-                onClick={() => navigate('/courts')}
+                onClick={() => navigate("/courts")}
               >
                 Xem tất cả sân
               </Button>
@@ -169,12 +180,13 @@ const Home = () => {
             <Col>
               <h2 className="mb-4">Bạn có sân cầu lông?</h2>
               <p className="lead mb-4">
-                Đăng ký trở thành đối tác và bắt đầu kinh doanh với chúng tôi ngay hôm nay!
+                Đăng ký trở thành đối tác và bắt đầu kinh doanh với chúng tôi
+                ngay hôm nay!
               </p>
-              <Button 
-                variant="warning" 
+              <Button
+                variant="warning"
                 size="lg"
-                onClick={() => navigate('/register?role=owner')}
+                onClick={() => navigate("/register?role=owner")}
               >
                 Đăng ký làm chủ sân
               </Button>

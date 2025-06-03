@@ -1,57 +1,65 @@
-import React, { useState } from 'react';
-import { Container, Row, Col, Card, Form, Button, Alert } from 'react-bootstrap';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { toast } from 'react-toastify';
+import React, { useState } from "react";
+import {
+  Container,
+  Row,
+  Col,
+  Card,
+  Form,
+  Button,
+  Alert,
+} from "react-bootstrap";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import { toast } from "react-toastify";
 
 const Register = () => {
   const [searchParams] = useSearchParams();
-  const defaultRole = searchParams.get('role') || 'player';
-  
+  const defaultRole = searchParams.get("role") || "player";
+
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    password: '',
-    confirmPassword: '',
+    name: "",
+    email: "",
+    phone: "",
+    password: "",
+    confirmPassword: "",
     role: defaultRole,
-    skillLevel: 'beginner'
+    skillLevel: "beginner",
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  
+  const [error, setError] = useState("");
+
   const { register } = useAuth();
   const navigate = useNavigate();
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
+    setError("");
 
     if (formData.password !== formData.confirmPassword) {
-      setError('Mật khẩu xác nhận không khớp');
+      setError("Mật khẩu xác nhận không khớp");
       setLoading(false);
       return;
     }
 
     const { confirmPassword, ...registerData } = formData;
     const result = await register(registerData);
-    
+
     if (result.success) {
       toast.success(result.message);
-      navigate('/');
+      navigate("/");
     } else {
       setError(result.message);
       toast.error(result.message);
     }
-    
+
     setLoading(false);
   };
 
@@ -65,9 +73,9 @@ const Register = () => {
                 <h2 className="fw-bold">Đăng ký</h2>
                 <p className="text-muted">Tạo tài khoản mới</p>
               </div>
-              
+
               {error && <Alert variant="danger">{error}</Alert>}
-              
+
               <Form onSubmit={handleSubmit}>
                 <Row>
                   <Col md={6}>
@@ -97,7 +105,7 @@ const Register = () => {
                     </Form.Group>
                   </Col>
                 </Row>
-                
+
                 <Form.Group className="mb-3">
                   <Form.Label>Email</Form.Label>
                   <Form.Control
@@ -109,7 +117,7 @@ const Register = () => {
                     placeholder="Nhập email"
                   />
                 </Form.Group>
-                
+
                 <Row>
                   <Col md={6}>
                     <Form.Group className="mb-3">
@@ -138,7 +146,7 @@ const Register = () => {
                     </Form.Group>
                   </Col>
                 </Row>
-                
+
                 <Row>
                   <Col md={6}>
                     <Form.Group className="mb-3">
@@ -153,7 +161,7 @@ const Register = () => {
                       </Form.Select>
                     </Form.Group>
                   </Col>
-                  {formData.role === 'player' && (
+                  {formData.role === "player" && (
                     <Col md={6}>
                       <Form.Group className="mb-3">
                         <Form.Label>Trình độ</Form.Label>
@@ -171,27 +179,31 @@ const Register = () => {
                     </Col>
                   )}
                 </Row>
-                
-                <Button 
-                  variant="primary" 
-                  type="submit" 
+
+                <Button
+                  variant="primary"
+                  type="submit"
                   className="w-100 mb-3"
                   disabled={loading}
                 >
                   {loading ? (
                     <>
-                      <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                      <span
+                        className="spinner-border spinner-border-sm me-2"
+                        role="status"
+                        aria-hidden="true"
+                      ></span>
                       Đang đăng ký...
                     </>
                   ) : (
-                    'Đăng ký'
+                    "Đăng ký"
                   )}
                 </Button>
               </Form>
-              
+
               <div className="text-center">
                 <p className="mb-0">
-                  Đã có tài khoản? {' '}
+                  Đã có tài khoản?{" "}
                   <Link to="/login" className="text-decoration-none">
                     Đăng nhập ngay
                   </Link>

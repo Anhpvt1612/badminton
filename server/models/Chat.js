@@ -1,64 +1,59 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
-const messageSchema = new mongoose.Schema({
-  sender: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
+const chatSchema = new mongoose.Schema(
+  {
+    // THÊM: Hỗ trợ cả chat 1-1 và group chat
+    chatType: {
+      type: String,
+      enum: ["direct", "group"],
+      default: "direct",
+    },
+
+    // Cho chat 1-1
+    participants: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
+
+    // THÊM: Cho group chat
+    groupChat: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "GroupChat",
+    },
+
+    sender: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    message: {
+      type: String,
+      required: true,
+    },
+    isRead: {
+      type: Boolean,
+      default: false,
+    },
+
+    // THÊM: Cho group - tracking ai đã đọc
+    readBy: [
+      {
+        user: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+        },
+        readAt: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
   },
-  content: {
-    type: String,
-    required: true
-  },
-  timestamp: {
-    type: Date,
-    default: Date.now
-  },
-  isRead: {
-    type: Boolean,
-    default: false
+  {
+    timestamps: true,
   }
-});
+);
 
-const chatSchema = new mongoose.Schema({
-  participants: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  }],
-  messages: [messageSchema],
-  lastMessage: {
-    type: Date,
-    default: Date.now
-  }
-}, {
-  timestamps: true
-});
-
-module.exports = mongoose.model('Chat', chatSchema);
-const mongoose = require('mongoose');
-
-const chatSchema = new mongoose.Schema({
-  participants: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  }],
-  sender: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  },
-  message: {
-    type: String,
-    required: true
-  },
-  isRead: {
-    type: Boolean,
-    default: false
-  }
-}, {
-  timestamps: true
-});
-
-module.exports = mongoose.model('Chat', chatSchema);
+module.exports = mongoose.model("Chat", chatSchema);

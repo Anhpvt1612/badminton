@@ -1,41 +1,60 @@
-import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Form, Button, Card, Pagination, Spinner } from 'react-bootstrap';
-import { useSearchParams } from 'react-router-dom';
-import axios from 'axios';
-import CourtCard from '../components/CourtCard';
+import React, { useState, useEffect } from "react";
+import {
+  Container,
+  Row,
+  Col,
+  Form,
+  Button,
+  Card,
+  Pagination,
+  Spinner,
+  Alert,
+} from "react-bootstrap";
+import { useSearchParams } from "react-router-dom";
+import axios from "axios";
+import CourtCard from "../components/CourtCard";
 
 const Courts = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const [courts, setCourts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [filters, setFilters] = useState({
-    location: searchParams.get('location') || '',
-    minPrice: '',
-    maxPrice: '',
-    amenities: []
+    location: searchParams.get("location") || "",
+    minPrice: "",
+    maxPrice: "",
+    amenities: [],
   });
   const [pagination, setPagination] = useState({
     currentPage: 1,
     totalPages: 1,
-    total: 0
+    total: 0,
   });
 
   const amenitiesList = [
-    'parking', 'lighting', 'airConditioning', 'shower', 'equipment',
-    'cafe', 'wifi', 'security', 'firstAid', 'lockers'
+    "parking",
+    "lighting",
+    "airConditioning",
+    "shower",
+    "equipment",
+    "cafe",
+    "wifi",
+    "security",
+    "firstAid",
+    "lockers",
   ];
 
   const amenityLabels = {
-    parking: 'Bãi đỗ xe',
-    lighting: 'Đèn chiếu sáng',
-    airConditioning: 'Điều hòa',
-    shower: 'Phòng tắm',
-    equipment: 'Dụng cụ',
-    cafe: 'Quán cafe',
-    wifi: 'WiFi',
-    security: 'Bảo vệ',
-    firstAid: 'Y tế',
-    lockers: 'Tủ khóa'
+    parking: "Bãi đỗ xe",
+    lighting: "Đèn chiếu sáng",
+    airConditioning: "Điều hòa",
+    shower: "Phòng tắm",
+    equipment: "Dụng cụ",
+    cafe: "Quán cafe",
+    wifi: "WiFi",
+    security: "Bảo vệ",
+    firstAid: "Y tế",
+    lockers: "Tủ khóa",
   };
 
   useEffect(() => {
@@ -45,26 +64,41 @@ const Courts = () => {
   const fetchCourts = async (page = 1) => {
     try {
       setLoading(true);
+      setError(null);
       const params = new URLSearchParams();
-      
-      if (filters.location) params.append('location', filters.location);
-      if (filters.minPrice) params.append('minPrice', filters.minPrice);
-      if (filters.maxPrice) params.append('maxPrice', filters.maxPrice);
-      if (filters.amenities.length > 0) {
-        filters.amenities.forEach(amenity => params.append('amenities', amenity));
-      }
-      params.append('page', page);
-      params.append('limit', '12');
 
-      const response = await axios.get(`/api/courts?${params.toString()}`);
+      if (filters.location) params.append("location", filters.location);
+      if (filters.minPrice) params.append("minPrice", filters.minPrice);
+      if (filters.maxPrice) params.append("maxPrice", filters.maxPrice);
+      if (filters.amenities.length > 0) {
+        filters.amenities.forEach((amenity) =>
+          params.append("amenities", amenity)
+        );
+      }
+      params.append("page", page);
+      params.append("limit", "12");
+
+      console.log("Fetching courts with params:", params.toString());
+      const response = await axios.get(`/api/courts?${params.toString()}`, {
+        timeout: 5000,
+      });
+      console.log("API response:", response.data);
+
       setCourts(response.data.courts || []);
       setPagination({
         currentPage: response.data.currentPage || 1,
         totalPages: response.data.totalPages || 1,
-        total: response.data.total || 0
+        total: response.data.total || 0,
       });
     } catch (error) {
-      console.error('Error fetching courts:', error);
+      console.error("Error fetching courts:", error.message);
+      if (error.response) {
+        console.error("Response data:", error.response.data);
+        console.error("Response status:", error.response.status);
+        setError(error.response.data.message || "Lỗi lấy danh sách sân");
+      } else {
+        setError("Không thể kết nối đến server");
+      }
     } finally {
       setLoading(false);
     }
@@ -72,16 +106,16 @@ const Courts = () => {
 
   const handleFilterChange = (e) => {
     const { name, value, type, checked } = e.target;
-    
-    if (type === 'checkbox') {
-      setFilters(prev => ({
+
+    if (type === "checkbox") {
+      setFilters((prev) => ({
         ...prev,
-        amenities: checked 
+        amenities: checked
           ? [...prev.amenities, value]
-          : prev.amenities.filter(a => a !== value)
+          : prev.amenities.filter((a) => a !== value),
       }));
     } else {
-      setFilters(prev => ({ ...prev, [name]: value }));
+      setFilters((prev) => ({ ...prev, [name]: value }));
     }
   };
 
@@ -105,16 +139,21 @@ const Courts = () => {
             <Card.Body>
               <Form onSubmit={handleSearch}>
                 <Form.Group className="mb-3">
-                  <Form.Label>Địa điểm</Form.Label>
+                  <Form.Label>
+                    Địa điểm (địa chỉ, quận, hoặc thành phố)
+                  </Form.Label>
                   <Form.Control
                     type="text"
                     name="location"
                     value={filters.location}
                     onChange={handleFilterChange}
-                    placeholder="Nhập địa điểm..."
+                    placeholder="VD: Đà Nẵng, Hải Châu, 123 Trần Phú"
                   />
+                  <Form.Text className="text-muted">
+                    Nhập địa chỉ, quận, hoặc thành phố để tìm kiếm
+                  </Form.Text>
                 </Form.Group>
-                
+
                 <Form.Group className="mb-3">
                   <Form.Label>Khoảng giá (VNĐ/giờ)</Form.Label>
                   <Row>
@@ -125,6 +164,7 @@ const Courts = () => {
                         value={filters.minPrice}
                         onChange={handleFilterChange}
                         placeholder="Từ"
+                        min="0"
                       />
                     </Col>
                     <Col>
@@ -134,14 +174,15 @@ const Courts = () => {
                         value={filters.maxPrice}
                         onChange={handleFilterChange}
                         placeholder="Đến"
+                        min="0"
                       />
                     </Col>
                   </Row>
                 </Form.Group>
-                
+
                 <Form.Group className="mb-3">
                   <Form.Label>Tiện ích</Form.Label>
-                  {amenitiesList.map(amenity => (
+                  {amenitiesList.map((amenity) => (
                     <Form.Check
                       key={amenity}
                       type="checkbox"
@@ -153,7 +194,7 @@ const Courts = () => {
                     />
                   ))}
                 </Form.Group>
-                
+
                 <Button variant="primary" type="submit" className="w-100">
                   Tìm kiếm
                 </Button>
@@ -161,15 +202,19 @@ const Courts = () => {
             </Card.Body>
           </Card>
         </Col>
-        
+
         <Col lg={9}>
           <div className="d-flex justify-content-between align-items-center mb-4">
             <h2>Danh sách sân cầu lông</h2>
-            <span className="text-muted">
-              Tìm thấy {pagination.total} sân
-            </span>
+            <span className="text-muted">Tìm thấy {pagination.total} sân</span>
           </div>
-          
+
+          {error && (
+            <Alert variant="danger" className="mb-4">
+              {error}
+            </Alert>
+          )}
+
           {loading ? (
             <div className="text-center py-5">
               <Spinner animation="border" role="status">
@@ -179,36 +224,41 @@ const Courts = () => {
           ) : courts.length === 0 ? (
             <div className="text-center py-5">
               <h4>Không tìm thấy sân nào</h4>
-              <p className="text-muted">Thử thay đổi bộ lọc tìm kiếm</p>
+              <p className="text-muted">
+                Thử thay đổi bộ lọc tìm kiếm (địa điểm, giá, tiện ích)
+              </p>
             </div>
           ) : (
             <>
               <Row>
-                {courts.map(court => (
+                {courts.map((court) => (
                   <Col md={6} lg={4} className="mb-4" key={court._id}>
                     <CourtCard court={court} />
                   </Col>
                 ))}
               </Row>
-              
+
               {pagination.totalPages > 1 && (
                 <div className="d-flex justify-content-center mt-4">
                   <Pagination>
-                    <Pagination.First 
+                    <Pagination.First
                       onClick={() => handlePageChange(1)}
                       disabled={pagination.currentPage === 1}
                     />
-                    <Pagination.Prev 
-                      onClick={() => handlePageChange(pagination.currentPage - 1)}
+                    <Pagination.Prev
+                      onClick={() =>
+                        handlePageChange(pagination.currentPage - 1)
+                      }
                       disabled={pagination.currentPage === 1}
                     />
-                    
+
                     {[...Array(pagination.totalPages)].map((_, index) => {
                       const page = index + 1;
                       if (
                         page === 1 ||
                         page === pagination.totalPages ||
-                        (page >= pagination.currentPage - 2 && page <= pagination.currentPage + 2)
+                        (page >= pagination.currentPage - 2 &&
+                          page <= pagination.currentPage + 2)
                       ) {
                         return (
                           <Pagination.Item
@@ -222,14 +272,20 @@ const Courts = () => {
                       }
                       return null;
                     })}
-                    
-                    <Pagination.Next 
-                      onClick={() => handlePageChange(pagination.currentPage + 1)}
-                      disabled={pagination.currentPage === pagination.totalPages}
+
+                    <Pagination.Next
+                      onClick={() =>
+                        handlePageChange(pagination.currentPage + 1)
+                      }
+                      disabled={
+                        pagination.currentPage === pagination.totalPages
+                      }
                     />
-                    <Pagination.Last 
+                    <Pagination.Last
                       onClick={() => handlePageChange(pagination.totalPages)}
-                      disabled={pagination.currentPage === pagination.totalPages}
+                      disabled={
+                        pagination.currentPage === pagination.totalPages
+                      }
                     />
                   </Pagination>
                 </div>
