@@ -43,16 +43,67 @@ router.post("/", auth, async (req, res) => {
       type,
       skillLevel,
       location,
-      preferredTime,
+      playDate,
+      startTime,
+      endTime,
       maxPlayers,
       expiresAt,
     } = req.body;
 
     // Validation
-    if (!title || !content || !type || !location) {
+    if (
+      !title ||
+      !content ||
+      !type ||
+      !location ||
+      !playDate ||
+      !startTime ||
+      !endTime
+    ) {
       return res.status(400).json({
         message: "Thiếu thông tin bắt buộc",
-        required: ["title", "content", "type", "location"],
+        required: [
+          "title",
+          "content",
+          "type",
+          "location",
+          "playDate",
+          "startTime",
+          "endTime",
+        ],
+      });
+    }
+
+    // Validate time format
+    const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
+    if (!timeRegex.test(startTime) || !timeRegex.test(endTime)) {
+      return res.status(400).json({
+        message: "Định dạng thời gian không hợp lệ (HH:MM)",
+      });
+    }
+
+    // Validate date and time
+    const playDateObj = new Date(playDate);
+    const now = new Date();
+
+    const [startHours, startMinutes] = startTime.split(":").map(Number);
+    const [endHours, endMinutes] = endTime.split(":").map(Number);
+
+    const playDateTime = new Date(playDateObj);
+    playDateTime.setHours(startHours, startMinutes, 0, 0);
+
+    const endDateTime = new Date(playDateObj);
+    endDateTime.setHours(endHours, endMinutes, 0, 0);
+
+    if (playDateTime <= now) {
+      return res.status(400).json({
+        message: "Không thể đăng bài cho thời gian trong quá khứ",
+      });
+    }
+
+    if (endDateTime <= playDateTime) {
+      return res.status(400).json({
+        message: "Thời gian kết thúc phải sau thời gian bắt đầu",
       });
     }
 
@@ -63,13 +114,15 @@ router.post("/", auth, async (req, res) => {
       type,
       skillLevel: skillLevel || "any",
       location: location.trim(),
-      preferredTime: preferredTime || "",
+      playDate: playDateObj,
+      startTime,
+      endTime,
       maxPlayers: maxPlayers || 2,
-      approvedPlayers: [req.user._id], // Tác giả tự động được duyệt
-      pendingRequests: [], // Khởi tạo mảng rỗng
+      approvedPlayers: [req.user._id],
+      pendingRequests: [],
       expiresAt: expiresAt
         ? new Date(expiresAt)
-        : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        : new Date(playDateTime.getTime() - 2 * 60 * 60 * 1000), // Hết hạn đăng ký 2 tiếng trước khi chơi
     });
 
     await post.save();
@@ -97,7 +150,7 @@ router.post("/", auth, async (req, res) => {
     res.status(201).json(post);
   } catch (error) {
     console.error("POST /api/posts Error:", error);
-    res.status(500).json({ message: "Lỗi tạo bài đăng" });
+    res.status(500).json({ message: error.message || "Lỗi tạo bài đăng" });
   }
 });
 

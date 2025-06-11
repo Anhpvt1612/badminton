@@ -1,0 +1,18 @@
+{
+  "builds": [
+    {
+      "src": "client/build/**/*",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "client/build",
+        "buildCommand": "cd client && npm run build"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "client/build/$1"
+    }
+  ]
+}

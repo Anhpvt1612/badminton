@@ -64,6 +64,24 @@ router.post("/", auth, async (req, res) => {
     // Tính tổng giá
     const totalPrice = duration * court.pricePerHour;
 
+    // THÊM: Kiểm tra số dư ví người đặt
+    const player = await User.findById(req.user._id);
+    if (!player) {
+      return res
+        .status(404)
+        .json({ message: "Không tìm thấy thông tin người dùng" });
+    }
+
+    const playerBalance = player.walletBalance || 0;
+    if (playerBalance < totalPrice) {
+      return res.status(400).json({
+        message: "Số dư ví không đủ để đặt sân",
+        required: totalPrice,
+        current: playerBalance,
+        shortage: totalPrice - playerBalance,
+      });
+    }
+
     // Tạo booking
     const booking = new Booking({
       player: req.user._id,
@@ -78,6 +96,28 @@ router.post("/", auth, async (req, res) => {
     });
 
     await booking.save();
+
+    // THÊM: Trừ tiền từ ví người đặt
+    const playerBalanceBefore = playerBalance;
+    const playerBalanceAfter = playerBalance - totalPrice;
+
+    await User.updateOne(
+      { _id: req.user._id },
+      { walletBalance: playerBalanceAfter }
+    );
+
+    // THÊM: Tạo transaction trừ tiền cho người đặt
+    await new Transaction({
+      user: req.user._id,
+      type: "booking_payment",
+      amount: -totalPrice,
+      description: `Thanh toán đặt sân ${court.name} - ${date} ${startTime}-${endTime}`,
+      relatedCourt: courtId,
+      relatedBooking: booking._id,
+      balanceBefore: playerBalanceBefore,
+      balanceAfter: playerBalanceAfter,
+      status: "completed",
+    }).save();
 
     // Tính phí hệ thống (5%)
     const systemFee = Math.round(totalPrice * 0.05);
@@ -107,8 +147,11 @@ router.post("/", auth, async (req, res) => {
     }).save();
 
     // Trừ phí hệ thống từ owner
-    const finalBalance = ownerBalanceAfter - systemFee;
-    await User.updateOne({ _id: owner._id }, { walletBalance: finalBalance });
+    const finalOwnerBalance = ownerBalanceAfter - systemFee;
+    await User.updateOne(
+      { _id: owner._id },
+      { walletBalance: finalOwnerBalance }
+    );
 
     // Tạo transaction phí hệ thống cho owner
     await new Transaction({
@@ -119,7 +162,7 @@ router.post("/", auth, async (req, res) => {
       relatedCourt: courtId,
       relatedBooking: booking._id,
       balanceBefore: ownerBalanceAfter,
-      balanceAfter: finalBalance,
+      balanceAfter: finalOwnerBalance,
       status: "completed",
     }).save();
 
@@ -134,9 +177,11 @@ router.post("/", auth, async (req, res) => {
     console.log(
       `✅ Booking created: ${
         court.name
-      } - Revenue: ${ownerReceive.toLocaleString(
+      } - Player paid: ${totalPrice.toLocaleString(
         "vi-VN"
-      )}đ - Fee: ${systemFee.toLocaleString("vi-VN")}đ`
+      )}đ - Owner received: ${ownerReceive.toLocaleString(
+        "vi-VN"
+      )}đ - System fee: ${systemFee.toLocaleString("vi-VN")}đ`
     );
 
     await booking.populate([
@@ -147,10 +192,12 @@ router.post("/", auth, async (req, res) => {
     res.status(201).json({
       message: "Đặt sân thành công",
       booking,
-      fee: {
+      payment: {
         totalPrice,
+        playerPaid: totalPrice,
+        playerBalanceAfter,
+        ownerReceived: ownerReceive,
         systemFee,
-        ownerReceive,
       },
     });
   } catch (error) {
@@ -228,7 +275,7 @@ router.get("/owner-bookings", auth, ownerAuth, async (req, res) => {
 //   }
 // });
 
-// Hủy đặt sân
+// SỬA: Hủy đặt sân - Chỉnh lại logic hoàn tiền
 router.put("/:id/cancel", auth, async (req, res) => {
   try {
     const User = require("../models/User");
@@ -238,12 +285,14 @@ router.put("/:id/cancel", auth, async (req, res) => {
     if (!booking) {
       return res.status(404).json({ message: "Không tìm thấy đặt sân" });
     }
+
     // Kiểm tra quyền hủy
     if (booking.player.toString() !== req.user._id.toString()) {
       return res
         .status(403)
         .json({ message: "Không có quyền hủy đặt sân này" });
     }
+
     // Kiểm tra thời gian hủy (ví dụ: chỉ được hủy trước 2 giờ)
     const bookingDateTime = new Date(
       `${booking.date.toDateString()} ${booking.startTime}`
@@ -251,27 +300,29 @@ router.put("/:id/cancel", auth, async (req, res) => {
     const now = new Date();
     const timeDiff = bookingDateTime.getTime() - now.getTime();
     const hoursDiff = timeDiff / (1000 * 3600);
+
     if (hoursDiff < 2) {
       return res
         .status(400)
         .json({ message: "Chỉ có thể hủy đặt sân trước 2 giờ" });
     }
-    // Hoàn tiền về ví người thuê và trừ lại ví chủ sân nếu trạng thái là confirmed
+
+    // Hoàn tiền và điều chỉnh số dư nếu trạng thái là confirmed
     if (booking.status === "confirmed") {
       const player = await User.findById(booking.player);
       const owner = booking.court
         ? await User.findById(booking.court.owner)
         : null;
 
+      // Hoàn tiền cho người đặt
       if (player) {
-        // SỬA: Lưu số dư trước khi hoàn tiền
         const playerBalanceBefore = player.walletBalance || 0;
         const playerBalanceAfter = playerBalanceBefore + booking.totalPrice;
 
         player.walletBalance = playerBalanceAfter;
         await player.save();
 
-        // SỬA: Tạo transaction hoàn tiền với số dư
+        // Tạo transaction hoàn tiền cho người đặt
         await new Transaction({
           user: player._id,
           type: "booking_refund",
@@ -285,29 +336,70 @@ router.put("/:id/cancel", auth, async (req, res) => {
         }).save();
       }
 
+      // Trừ lại tiền từ chủ sân
       if (owner) {
-        const fee = Math.round(booking.totalPrice * 0.05);
-        const receiveAmount = booking.totalPrice - fee;
+        const systemFee = Math.round(booking.totalPrice * 0.05);
+        const ownerReceived = booking.totalPrice - systemFee;
 
-        // SỬA: Lưu số dư trước khi trừ lại
         const ownerBalanceBefore = owner.walletBalance || 0;
-        const ownerBalanceAfter = ownerBalanceBefore - receiveAmount;
+        const ownerBalanceAfter = ownerBalanceBefore - ownerReceived;
 
         owner.walletBalance = ownerBalanceAfter;
         await owner.save();
 
-        // SỬA: Tạo transaction trừ lại tiền với số dư
+        // Tạo transaction trừ lại tiền từ chủ sân
         await new Transaction({
           user: owner._id,
-          type: "booking_refund",
-          amount: -receiveAmount,
-          description: `Trừ lại tiền do hủy booking sân ${booking.court.name}`,
+          type: "booking_refund_deduction",
+          amount: -ownerReceived,
+          description: `Trừ lại doanh thu do hủy booking sân ${booking.court.name}`,
           relatedBooking: booking._id,
           relatedCourt: booking.court._id,
           balanceBefore: ownerBalanceBefore,
           balanceAfter: ownerBalanceAfter,
           status: "completed",
         }).save();
+
+        // Hoàn lại phí hệ thống cho chủ sân (cộng lại phí đã trừ)
+        const finalOwnerBalance = ownerBalanceAfter + systemFee;
+        await User.updateOne(
+          { _id: owner._id },
+          { walletBalance: finalOwnerBalance }
+        );
+
+        await new Transaction({
+          user: owner._id,
+          type: "system_fee_refund",
+          amount: systemFee,
+          description: `Hoàn lại phí hệ thống do hủy booking sân ${booking.court.name}`,
+          relatedBooking: booking._id,
+          relatedCourt: booking.court._id,
+          balanceBefore: ownerBalanceAfter,
+          balanceAfter: finalOwnerBalance,
+          status: "completed",
+        }).save();
+
+        // Trừ lại doanh thu từ admin
+        const admin = await User.findOne({ role: "admin" });
+        if (admin) {
+          const adminBalanceBefore = admin.walletBalance || 0;
+          const adminBalanceAfter = adminBalanceBefore - systemFee;
+
+          admin.walletBalance = adminBalanceAfter;
+          await admin.save();
+
+          await new Transaction({
+            user: admin._id,
+            type: "system_fee_refund_deduction",
+            amount: -systemFee,
+            description: `Trừ lại phí hệ thống do hủy booking sân ${booking.court.name}`,
+            relatedBooking: booking._id,
+            relatedCourt: booking.court._id,
+            balanceBefore: adminBalanceBefore,
+            balanceAfter: adminBalanceAfter,
+            status: "completed",
+          }).save();
+        }
       }
     }
 
@@ -315,8 +407,12 @@ router.put("/:id/cancel", auth, async (req, res) => {
     booking.cancellationReason = cancellationReason;
     await booking.save();
 
-    res.json(booking);
+    res.json({
+      message: "Hủy đặt sân thành công và đã hoàn tiền",
+      booking,
+    });
   } catch (error) {
+    console.error("❌ Error cancelling booking:", error);
     res.status(500).json({ message: "Lỗi hủy đặt sân" });
   }
 });

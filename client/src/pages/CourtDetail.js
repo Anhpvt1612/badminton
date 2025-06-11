@@ -731,7 +731,6 @@ const CourtDetail = () => {
               • Tiền sẽ được trừ ngay khi đặt sân
               <br />
               • Có thể hủy đặt sân trước 2 tiếng để được hoàn tiền 100%
-              <br />• Chủ sân sẽ nhận được 95% (trừ 5% phí hệ thống)
             </small>
           </div>
         </Modal.Body>
