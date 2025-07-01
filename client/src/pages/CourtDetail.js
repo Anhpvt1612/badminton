@@ -729,8 +729,7 @@ const CourtDetail = () => {
           <div className="alert alert-warning">
             <small>
               • Tiền sẽ được trừ ngay khi đặt sân
-              <br />
-              • Có thể hủy đặt sân trước 2 tiếng để được hoàn tiền 100%
+              <br />• Có thể hủy đặt sân trước 2 tiếng để được hoàn tiền 100%
             </small>
           </div>
         </Modal.Body>

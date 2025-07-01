@@ -11,6 +11,8 @@
   --border-radius: 12px;
   --border-radius-lg: 20px;
   --transition: all 0.3s ease;
+  /* Điều chỉnh chiều cao navbar theo responsive */
+  --navbar-height: 80px;
 }
 
 * {
@@ -28,11 +30,112 @@ body {
   line-height: 1.6;
   color: #333;
   background-color: #f8f9fa;
+  /* Thêm padding-top để tránh navbar che nội dung */
+  padding-top: var(--navbar-height);
 }
 
-/* Smooth scrolling */
-html {
-  scroll-behavior: smooth;
+/* Class để bỏ padding cho trang đặc biệt */
+.no-navbar-padding {
+  padding-top: 0 !important;
+}
+
+/* Main content wrapper */
+.main-content {
+  min-height: calc(100vh - var(--navbar-height));
+  position: relative;
+}
+
+/* App content wrapper */
+.app-content {
+  position: relative;
+  z-index: 1;
+}
+
+/* Page containers */
+.page-container {
+  padding-top: 2rem;
+  min-height: calc(100vh - var(--navbar-height));
+  position: relative;
+}
+
+.courts-page {
+  /* Không cần padding-top vì đã có trong body */
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: calc(100vh - var(--navbar-height));
+  padding: 2rem 0;
+}
+
+.home-page {
+  min-height: calc(100vh - var(--navbar-height));
+  position: relative;
+}
+
+.court-detail-page {
+  min-height: calc(100vh - var(--navbar-height));
+  padding-top: 1rem;
+  position: relative;
+}
+
+/* Auth pages không cần padding vì có full height */
+.auth-page {
+  min-height: 100vh;
+  position: relative;
+  /* Reset padding từ body */
+  margin-top: calc(-1 * var(--navbar-height));
+  padding-top: var(--navbar-height);
+}
+
+/* Responsive navbar height */
+@media (max-width: 991.98px) {
+  :root {
+    --navbar-height: 85px;
+  }
+  
+  body {
+    padding-top: var(--navbar-height);
+  }
+  
+  .courts-page,
+  .home-page,
+  .court-detail-page {
+    min-height: calc(100vh - 85px);
+  }
+}
+
+@media (max-width: 767.98px) {
+  :root {
+    --navbar-height: 75px;
+  }
+  
+  body {
+    padding-top: var(--navbar-height);
+  }
+  
+  .courts-page,
+  .home-page,
+  .court-detail-page {
+    min-height: calc(100vh - 75px);
+  }
+  
+  .courts-page {
+    padding: 1rem 0;
+  }
+}
+
+@media (max-width: 575.98px) {
+  :root {
+    --navbar-height: 70px;
+  }
+  
+  body {
+    padding-top: var(--navbar-height);
+  }
+  
+  .courts-page,
+  .home-page,
+  .court-detail-page {
+    min-height: calc(100vh - 70px);
+  }
 }
 
 /* Enhanced buttons */
@@ -185,12 +288,22 @@ html {
 }
 
 /* Responsive improvements */
-@media (max-width: 768px) {
+@media (max-width: 991px) {
+  :root {
+    --navbar-height: 80px; /* Navbar cao hơn trên tablet */
+  }
+  
+  body {
+    padding-top: var(--navbar-height);
+  }
+  
   .container-fluid {
     padding-left: 1rem;
     padding-right: 1rem;
   }
-  
+}
+
+@media (max-width: 768px) {
   .btn {
     width: 100%;
     margin-bottom: 0.5rem;
@@ -198,6 +311,16 @@ html {
   
   .btn:last-child {
     margin-bottom: 0;
+  }
+}
+
+@media (max-width: 576px) {
+  :root {
+    --navbar-height: 70px; /* Navbar thấp hơn trên mobile */
+  }
+  
+  body {
+    padding-top: var(--navbar-height);
   }
 }
 
@@ -258,4 +381,78 @@ html {
 
 .slide-in-down {
   animation: slideInDown 0.6s ease-out;
+}
+
+/* Force fix cho navbar overlap */
+.app-content {
+  padding-top: var(--navbar-height);
+  min-height: 100vh;
+}
+
+/* Đảm bảo tất cả container chính có padding phù hợp */
+.container,
+.container-fluid {
+  position: relative;
+  z-index: 1;
+}
+
+/* Fix cho modal và dropdown */
+.modal {
+  z-index: 1050;
+}
+
+.dropdown-menu {
+  z-index: 1040;
+}
+
+/* Debug helper - có thể bỏ sau khi fix xong */
+.debug-navbar {
+  border: 2px solid red !important;
+}
+
+.debug-content {
+  border: 2px solid blue !important;
+  margin-top: 2px;
+}
+
+/* Fix cho các trang cụ thể */
+.courts-page {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: calc(100vh - var(--navbar-height));
+  padding: 2rem 0;
+}
+
+.home-page {
+  min-height: calc(100vh - var(--navbar-height));
+}
+
+.court-detail-page {
+  min-height: calc(100vh - var(--navbar-height));
+}
+
+/* Login/Register pages không cần padding */
+.auth-page {
+  padding-top: 0 !important;
+  min-height: 100vh;
+}
+
+/* Responsive cho các trang */
+@media (max-width: 991px) {
+  .courts-page,
+  .home-page,
+  .court-detail-page {
+    min-height: calc(100vh - 80px);
+  }
+}
+
+@media (max-width: 576px) {
+  .courts-page,
+  .home-page,
+  .court-detail-page {
+    min-height: calc(100vh - 70px);
+  }
+  
+  .courts-page {
+    padding: 1rem 0;
+  }
 }

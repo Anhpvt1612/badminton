@@ -1,0 +1,215 @@
+.courts-page {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: calc(100vh - var(--navbar-height));
+  padding: 2rem 0;
+  position: relative;
+  z-index: 1;
+}
+
+.courts-container {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+  padding: 2rem;
+  margin: 0 1rem;
+  margin-top: 1rem;
+}
+
+/* Header */
+.courts-header {
+  text-align: center;
+  margin-bottom: 3rem;
+  padding-top: 1rem;
+}
+
+/* Filter card - bỏ sticky để tránh xung đột */
+.filter-card {
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  border: none;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  position: relative;
+  top: auto;
+}
+
+/* Results Section */
+.results-header {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 16px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  margin-bottom: 2rem;
+}
+
+.results-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 0.75rem;
+}
+
+.results-meta {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.result-count {
+  font-size: 0.95rem;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+}
+
+.filter-badge {
+  font-size: 0.85rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: 15px;
+  border: 1px solid #dee2e6;
+  color: #6c757d;
+  background: #f8f9fa;
+}
+
+/* States */
+.loading-state,
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.loading-state h5 {
+  margin-top: 1rem;
+  color: #333;
+}
+
+.empty-icon {
+  font-size: 4rem;
+  color: #dee2e6;
+  margin-bottom: 1.5rem;
+}
+
+.empty-suggestions {
+  margin-top: 2rem;
+}
+
+.error-alert {
+  border-radius: 12px;
+  border: none;
+  margin-bottom: 2rem;
+}
+
+/* Courts Grid */
+.courts-grid {
+  margin-bottom: 2rem;
+}
+
+/* Pagination */
+.pagination-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 2rem 0;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.custom-pagination {
+  margin: 0;
+}
+
+.custom-pagination .page-link {
+  border: none;
+  color: #667eea;
+  margin: 0 0.25rem;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.custom-pagination .page-link:hover {
+  background: rgba(102, 126, 234, 0.1);
+  color: #667eea;
+}
+
+.custom-pagination .page-item.active .page-link {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-color: transparent;
+  color: white;
+}
+
+.pagination-info {
+  color: #6c757d;
+  font-size: 0.9rem;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+  .header-content {
+    flex-direction: column;
+    text-align: center;
+    gap: 2rem;
+  }
+  
+  .filter-card {
+    position: relative !important;
+    top: 0 !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .page-title {
+    font-size: 2rem;
+  }
+  
+  .page-header {
+    padding: 2rem 0 1.5rem;
+  }
+  
+  .results-meta {
+    justify-content: center;
+  }
+  
+  .amenities-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 991.98px) {
+  .courts-page {
+    padding: 1.5rem 0;
+  }
+  
+  .courts-container {
+    margin: 0 0.5rem;
+    padding: 1.5rem;
+    margin-top: 0.5rem;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .courts-page {
+    padding: 1rem 0;
+  }
+  
+  .courts-container {
+    border-radius: 15px;
+    padding: 1rem;
+  }
+  
+  .courts-header {
+    margin-bottom: 2rem;
+    padding-top: 0.5rem;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .courts-container {
+    margin: 0 0.25rem;
+    border-radius: 10px;
+  }
+}
